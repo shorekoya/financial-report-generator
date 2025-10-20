@@ -373,7 +373,17 @@
     </div>
 
     <script>
-      // Part 2: Agent Logic & Frontend-to-Backend Interface
+      // Environment detection for backend URL
+      const getBackendUrl = () => {
+        if (
+          window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1'
+        ) {
+          return 'http://localhost:5000'; // Local development
+        } else {
+          return 'https://financial-report-api.onrender.com'; // Production on Render
+        }
+      };
 
       /**
        * Prepares and validates the agent request payload
@@ -414,7 +424,7 @@
       }
 
       /**
-       * Sends request to actual C# backend service
+       * Sends request to backend service
        * @param {Object} payload - The validated request payload
        */
       async function sendToBackend(payload) {
@@ -426,35 +436,36 @@
           generateBtn.textContent = 'Generating...';
           showStatus('Generating report...', 'success');
 
-          // Actual API call to your C# backend
-          const response = await fetch(
-            'http://localhost:5000/api/generate-report',
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(payload),
-            }
-          );
+          // Use environment-aware backend URL
+          const backendUrl = getBackendUrl();
+
+          console.log('Sending to backend:', backendUrl);
+          console.log('Payload:', JSON.stringify(payload, null, 2));
+
+          const response = await fetch(`${backendUrl}/api/generate-report`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
+
+          console.log('Response status:', response.status);
 
           if (!response.ok) {
-            const errorData = await response.json();
+            const errorText = await response.text();
             throw new Error(
-              errorData.detail || `HTTP error! status: ${response.status}`
+              `HTTP error! status: ${response.status}, details: ${errorText}`
             );
           }
 
           const result = await response.json();
+          console.log('Backend response:', result);
 
           if (result.success) {
             // Add to recent reports
             addToRecentReports(payload);
-
             showStatus('Report generated successfully!', 'success');
-
-            // Optional: Auto-download the file
-            // window.open(`http://localhost:5000/api/download/${result.fileName}`, '_blank');
 
             // Reset form after success
             setTimeout(() => {
@@ -469,7 +480,7 @@
           console.error('Error calling backend:', error);
           if (error.message.includes('Failed to fetch')) {
             showStatus(
-              'Cannot connect to backend service. Please ensure it is running on localhost:5000',
+              'Cannot connect to backend service. If using free tier, the backend might be spinning up. Please try again in 30 seconds.',
               'error'
             );
           } else {
@@ -481,6 +492,7 @@
           generateBtn.textContent = 'Generate Report';
         }
       }
+
       // Form submission handler
       document
         .getElementById('reportForm')

@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: financial-report-api
+    env: dotnet
+    plan: free
+    buildCommand: dotnet publish -c Release -o output
+    startCommand: cd output && dotnet ReportGenerator.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production

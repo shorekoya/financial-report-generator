@@ -7,14 +7,19 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add CORS for Office Add-in - ALLOW ALL ORIGINS FOR TESTING
+// Add CORS for both local development and production
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()  // Allow all origins during testing
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(
+            "https://shorekoya.github.io",  // GitHub Pages
+            "http://localhost:5500",        // Live Server
+            "http://127.0.0.1:5500",        // Live Server alternative
+            "http://localhost:3000"         // Local development
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
     });
 });
 
@@ -120,7 +125,7 @@ app.MapGet("/", () => "Financial Report Generator API is running!");
 
 app.Run();
 
-// Your existing ReportGenerator class - FIXED VERSION
+// Your existing ReportGenerator class
 public class ReportGenerator
 {
     public static string CreateSimpleReport(string clientName, string reportType, int reportYear = 2024)
@@ -141,9 +146,9 @@ public class ReportGenerator
             mainPart.Document = new Document();
             Body body = mainPart.Document.AppendChild(new Body());
 
-            // Create and format the title paragraph - FIXED
+            // Create and format the title paragraph
             Paragraph titlePara = body.AppendChild(new Paragraph());
-            Run titleRun = titlePara.AppendChild(new Run()); // FIXED: Properly assigned
+            Run titleRun = titlePara.AppendChild(new Run());
             
             // Apply formatting to title
             RunProperties titleProps = titleRun.AppendChild(new RunProperties());
