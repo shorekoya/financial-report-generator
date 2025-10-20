@@ -1,0 +1,80 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Node.js (if using npm for deployment)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+out/
+*.log
+
+# C# / .NET
+bin/
+obj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+.vs/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# Test coverage
+coverage/
+*.coverage
+*.coveragexml
+
+# Generated documents (for testing)
+GeneratedReport*.docx
+*.docx
+*.doc
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Deployment files
+.vercel
+.netlify

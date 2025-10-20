@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financial Report Generator</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --primary: #2563eb;
+        --primary-hover: #1d4ed8;
+        --secondary: #64748b;
+        --success: #10b981;
+        --error: #ef4444;
+        --bg-main: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #0f172a;
+        --text-secondary: #64748b;
+        --border: #e2e8f0;
+        --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          'Helvetica Neue', Arial, sans-serif;
+        background: var(--bg-main);
+        color: var(--text-primary);
+        line-height: 1.6;
+        padding: 20px 16px;
+        max-width: 350px;
+        margin: 0 auto;
+      }
+
+      .container {
+        background: var(--bg-card);
+        border-radius: 12px;
+        padding: 24px 20px;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .header {
+        margin-bottom: 28px;
+      }
+
+      .header h1 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+      }
+
+      .header p {
+        font-size: 13px;
+        color: var(--text-secondary);
+      }
+
+      .form-group {
+        margin-bottom: 24px;
+      }
+
+      .form-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+      }
+
+      /* Report Type - Segmented Control */
+      .segmented-control {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+        background: var(--bg-main);
+        padding: 4px;
+        border-radius: 8px;
+      }
+
+      .segment-option {
+        display: none;
+      }
+
+      .segment-label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        background: transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+      }
+
+      .segment-option:checked + .segment-label {
+        background: var(--bg-card);
+        color: var(--primary);
+        box-shadow: var(--shadow);
+      }
+
+      .segment-label:hover {
+        color: var(--text-primary);
+      }
+
+      /* Year Selector - Custom Dropdown */
+      .year-select {
+        position: relative;
+      }
+
+      .year-select select {
+        width: 100%;
+        padding: 12px 40px 12px 16px;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-primary);
+        background: var(--bg-main);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+        appearance: none;
+        transition: all 0.2s ease;
+      }
+
+      .year-select select:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--bg-card);
+      }
+
+      .year-select::after {
+        content: '▼';
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 10px;
+        color: var(--text-secondary);
+        pointer-events: none;
+      }
+
+      /* Client Input */
+      .text-input {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 14px;
+        color: var(--text-primary);
+        background: var(--bg-main);
+        border: 2px solid var(--border);
+        border-radius: 8px;
+        transition: all 0.2s ease;
+      }
+
+      .text-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: var(--bg-card);
+      }
+
+      .text-input::placeholder {
+        color: var(--text-secondary);
+      }
+
+      /* Generate Button */
+      .btn-generate {
+        width: 100%;
+        padding: 14px 24px;
+        font-size: 15px;
+        font-weight: 600;
+        color: white;
+        background: var(--primary);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: var(--shadow);
+        margin-top: 8px;
+      }
+
+      .btn-generate:hover {
+        background: var(--primary-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-lg);
+      }
+
+      .btn-generate:active {
+        transform: translateY(0);
+      }
+
+      .btn-generate:disabled {
+        background: var(--secondary);
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* Status Messages */
+      .status-message {
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-top: 16px;
+        display: none;
+      }
+
+      .status-message.success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #6ee7b7;
+      }
+
+      .status-message.error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fca5a5;
+      }
+
+      .status-message.show {
+        display: block;
+        animation: slideIn 0.3s ease;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Bonus Feature: Recent Reports */
+      .recent-reports {
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+      }
+
+      .recent-reports h3 {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .recent-item {
+        padding: 10px 12px;
+        background: var(--bg-main);
+        border-radius: 6px;
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .recent-item:hover {
+        background: var(--border);
+        color: var(--text-primary);
+      }
+
+      .recent-item strong {
+        color: var(--text-primary);
+        font-weight: 600;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 20px;
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Generate Report</h1>
+        <p>Create financial documents instantly</p>
+      </div>
+
+      <form id="reportForm">
+        <!-- Report Type Selection -->
+        <div class="form-group">
+          <label class="form-label">Report Type</label>
+          <div class="segmented-control">
+            <input
+              type="radio"
+              id="pl"
+              name="reportType"
+              value="P&L"
+              class="segment-option"
+              checked
+            />
+            <label for="pl" class="segment-label">P&L</label>
+
+            <input
+              type="radio"
+              id="balance"
+              name="reportType"
+              value="Balance Sheet"
+              class="segment-option"
+            />
+            <label for="balance" class="segment-label">Balance</label>
+
+            <input
+              type="radio"
+              id="cashflow"
+              name="reportType"
+              value="Cash Flow"
+              class="segment-option"
+            />
+            <label for="cashflow" class="segment-label">Cash Flow</label>
+          </div>
+        </div>
+
+        <!-- Reporting Year -->
+        <div class="form-group">
+          <label class="form-label" for="reportYear">Reporting Year</label>
+          <div class="year-select">
+            <select id="reportYear" name="reportYear">
+              <option value="2025">2025</option>
+              <option value="2024" selected>2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+              <option value="2021">2021</option>
+              <option value="2020">2020</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Client Name/ID -->
+        <div class="form-group">
+          <label class="form-label" for="clientName">Client Name or ID</label>
+          <input
+            type="text"
+            id="clientName"
+            name="clientName"
+            class="text-input"
+            placeholder="e.g., Acme Corp or CLI-2024-001"
+            autocomplete="off"
+          />
+        </div>
+
+        <!-- Generate Button -->
+        <button type="submit" class="btn-generate" id="generateBtn">
+          Generate Report
+        </button>
+      </form>
+
+      <!-- Status Message -->
+      <div id="statusMessage" class="status-message"></div>
+
+      <!-- Bonus Feature: Recent Reports -->
+      <div class="recent-reports">
+        <h3>Recent Reports</h3>
+        <div id="recentList">
+          <div class="empty-state">No recent reports yet</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Part 2: Agent Logic & Frontend-to-Backend Interface
+
+      /**
+       * Prepares and validates the agent request payload
+       * @returns {Object|null} Validated JSON payload or null if validation fails
+       */
+      function prepareAgentRequest() {
+        // Collect data from UI inputs
+        const reportType = document.querySelector(
+          'input[name="reportType"]:checked'
+        ).value;
+        const reportYear = document.getElementById('reportYear').value;
+        const clientName = document.getElementById('clientName').value.trim();
+
+        // Validation
+        if (!reportType) {
+          showStatus('Please select a report type', 'error');
+          return null;
+        }
+
+        if (!reportYear) {
+          showStatus('Please select a reporting year', 'error');
+          return null;
+        }
+
+        if (!clientName || clientName.length < 2) {
+          showStatus('Please enter a valid client name or ID', 'error');
+          return null;
+        }
+
+        // Return validated JSON payload
+        return {
+          reportType: reportType,
+          reportYear: parseInt(reportYear),
+          clientName: clientName,
+          timestamp: new Date().toISOString(),
+          requestId: generateRequestId(),
+        };
+      }
+
+      /**
+       * Sends request to actual C# backend service
+       * @param {Object} payload - The validated request payload
+       */
+      async function sendToBackend(payload) {
+        const generateBtn = document.getElementById('generateBtn');
+
+        try {
+          // Show loading state
+          generateBtn.disabled = true;
+          generateBtn.textContent = 'Generating...';
+          showStatus('Generating report...', 'success');
+
+          // Actual API call to your C# backend
+          const response = await fetch(
+            'http://localhost:5000/api/generate-report',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(payload),
+            }
+          );
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(
+              errorData.detail || `HTTP error! status: ${response.status}`
+            );
+          }
+
+          const result = await response.json();
+
+          if (result.success) {
+            // Add to recent reports
+            addToRecentReports(payload);
+
+            showStatus('Report generated successfully!', 'success');
+
+            // Optional: Auto-download the file
+            // window.open(`http://localhost:5000/api/download/${result.fileName}`, '_blank');
+
+            // Reset form after success
+            setTimeout(() => {
+              document.getElementById('reportForm').reset();
+              document.getElementById('pl').checked = true;
+              hideStatus();
+            }, 3000);
+          } else {
+            throw new Error(result.message || 'Unknown error occurred');
+          }
+        } catch (error) {
+          console.error('Error calling backend:', error);
+          if (error.message.includes('Failed to fetch')) {
+            showStatus(
+              'Cannot connect to backend service. Please ensure it is running on localhost:5000',
+              'error'
+            );
+          } else {
+            showStatus('Error: ' + error.message, 'error');
+          }
+        } finally {
+          // Reset button state
+          generateBtn.disabled = false;
+          generateBtn.textContent = 'Generate Report';
+        }
+      }
+      // Form submission handler
+      document
+        .getElementById('reportForm')
+        .addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          const payload = prepareAgentRequest();
+
+          if (payload) {
+            await sendToBackend(payload);
+          }
+        });
+
+      // Utility functions
+      function showStatus(message, type) {
+        const statusEl = document.getElementById('statusMessage');
+        statusEl.textContent = message;
+        statusEl.className = `status-message ${type} show`;
+      }
+
+      function hideStatus() {
+        const statusEl = document.getElementById('statusMessage');
+        statusEl.classList.remove('show');
+      }
+
+      function generateRequestId() {
+        return `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      }
+
+      // Bonus Feature: Recent Reports Management
+      function addToRecentReports(payload) {
+        let recent = JSON.parse(localStorage.getItem('recentReports') || '[]');
+
+        // Add new report to beginning of array
+        recent.unshift({
+          ...payload,
+          createdAt: new Date().toISOString(),
+        });
+
+        // Keep only last 5 reports
+        recent = recent.slice(0, 5);
+
+        // Save to localStorage
+        localStorage.setItem('recentReports', JSON.stringify(recent));
+
+        // Update UI
+        renderRecentReports();
+      }
+
+      function renderRecentReports() {
+        const recent = JSON.parse(
+          localStorage.getItem('recentReports') || '[]'
+        );
+        const listEl = document.getElementById('recentList');
+
+        if (recent.length === 0) {
+          listEl.innerHTML =
+            '<div class="empty-state">No recent reports yet</div>';
+          return;
+        }
+
+        listEl.innerHTML = recent
+          .map(
+            (report) => `
+                <div class="recent-item" onclick='loadReport(${JSON.stringify(
+                  report
+                )})'>
+                    <strong>${report.reportType}</strong> • ${
+              report.reportYear
+            }<br>
+                    ${report.clientName}
+                </div>
+            `
+          )
+          .join('');
+      }
+
+      function loadReport(report) {
+        // Pre-fill form with recent report data
+        document.querySelector(
+          `input[value="${report.reportType}"]`
+        ).checked = true;
+        document.getElementById('reportYear').value = report.reportYear;
+        document.getElementById('clientName').value = report.clientName;
+
+        showStatus('Report details loaded', 'success');
+        setTimeout(hideStatus, 2000);
+      }
+
+      // Initialize recent reports on page load
+      document.addEventListener('DOMContentLoaded', () => {
+        renderRecentReports();
+      });
+    </script>
+  </body>
+</html>
